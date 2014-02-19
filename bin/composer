@@ -1,6 +1,8 @@
 #!/usr/bin/env php
 <?php
 
+xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
+
 if (PHP_SAPI !== 'cli') {
     echo 'Warning: Composer should be invoked via the CLI version of PHP, not the '.PHP_SAPI.' SAPI'.PHP_EOL;
 }
@@ -41,4 +43,16 @@ if (function_exists('ini_set')) {
 
 // run the command application
 $application = new Application();
+$application->setAutoExit(false);
 $application->run();
+
+$data = xhprof_disable();
+
+$XHPROF_ROOT = __DIR__."/../../xhprof";
+include_once $XHPROF_ROOT . "/xhprof_lib/utils/xhprof_lib.php";
+include_once $XHPROF_ROOT . "/xhprof_lib/utils/xhprof_runs.php";
+
+$xhprof_runs = new XHProfRuns_Default('/tmp/xhprof');
+$run_id = $xhprof_runs->save_run($data, "composer");
+
+echo "http://localhost:8000/index.php?run={$run_id}&source=composer\n";
