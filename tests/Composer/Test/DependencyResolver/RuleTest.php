@@ -12,6 +12,7 @@
 
 namespace Composer\Test\DependencyResolver;
 
+use Composer\DependencyResolver\Literal;
 use Composer\DependencyResolver\Rule;
 use Composer\DependencyResolver\Pool;
 use Composer\Repository\ArrayRepository;
@@ -28,7 +29,7 @@ class RuleTest extends TestCase
 
     public function testGetHash()
     {
-        $rule = new Rule($this->pool, array(123), 'job1', null);
+        $rule = new Rule($this->pool, array(new Literal(123)), 'job1', null);
 
         $this->assertEquals(substr(md5('123'), 0, 5), $rule->getHash());
     }
@@ -43,24 +44,24 @@ class RuleTest extends TestCase
 
     public function testEqualsForRulesWithDifferentHashes()
     {
-        $rule = new Rule($this->pool, array(1, 2), 'job1', null);
-        $rule2 = new Rule($this->pool, array(1, 3), 'job1', null);
+        $rule = new Rule($this->pool, array(new Literal(1), new Literal(2)), 'job1', null);
+        $rule2 = new Rule($this->pool, array(new Literal(1), new Literal(3)), 'job1', null);
 
         $this->assertFalse($rule->equals($rule2));
     }
 
     public function testEqualsForRulesWithDifferLiteralsQuantity()
     {
-        $rule = new Rule($this->pool, array(1, 12), 'job1', null);
-        $rule2 = new Rule($this->pool, array(1), 'job1', null);
+        $rule = new Rule($this->pool, array(new Literal(1), new Literal(12)), 'job1', null);
+        $rule2 = new Rule($this->pool, array(new Literal(1)), 'job1', null);
 
         $this->assertFalse($rule->equals($rule2));
     }
 
     public function testEqualsForRulesWithSameLiterals()
     {
-        $rule = new Rule($this->pool, array(1, 12), 'job1', null);
-        $rule2 = new Rule($this->pool, array(1, 12), 'job1', null);
+        $rule = new Rule($this->pool, array(new Literal(1), new Literal(12)), 'job1', null);
+        $rule2 = new Rule($this->pool, array(new Literal(1), new Literal(12)), 'job1', null);
 
         $this->assertTrue($rule->equals($rule2));
     }
@@ -95,8 +96,8 @@ class RuleTest extends TestCase
 
     public function testIsAssertions()
     {
-        $rule = new Rule($this->pool, array(1, 12), 'job1', null);
-        $rule2 = new Rule($this->pool, array(1), 'job1', null);
+        $rule = new Rule($this->pool, array(new Literal(1), new Literal(12)), 'job1', null);
+        $rule2 = new Rule($this->pool, array(new Literal(1)), 'job1', null);
 
         $this->assertFalse($rule->isAssertion());
         $this->assertTrue($rule2->isAssertion());
@@ -109,7 +110,7 @@ class RuleTest extends TestCase
         $repo->addPackage($p2 = $this->getPackage('baz', '1.1'));
         $this->pool->addRepository($repo);
 
-        $rule = new Rule($this->pool, array($p1->getId(), -$p2->getId()), 'job1', null);
+        $rule = new Rule($this->pool, array(new Literal($p1->getId()), new Literal(-$p2->getId())), 'job1', null);
 
         $this->assertEquals('(-baz-1.1.0.0|+foo-2.1.0.0)', $rule->__toString());
     }

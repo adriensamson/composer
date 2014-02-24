@@ -32,6 +32,9 @@ class Solver
     protected $addedMap = array();
     protected $updateMap = array();
     protected $watchGraph;
+    /**
+     * @var Decisions
+     */
     protected $decisions;
     protected $installedMap;
 
@@ -64,7 +67,7 @@ class Solver
             $literals = $rule->getLiterals();
             $literal = $literals[0];
 
-            if (!$this->decisions->decided(abs($literal))) {
+            if (!$this->decisions->decided($literal->getPackageId())) {
                 $this->decisions->decide($literal, 1, $rule);
                 continue;
             }
@@ -107,7 +110,7 @@ class Solver
                 $assertRuleLiterals = $assertRule->getLiterals();
                 $assertRuleLiteral = $assertRuleLiterals[0];
 
-                if (abs($literal) !== abs($assertRuleLiteral)) {
+                if ($literal->getPackageId() !== $assertRuleLiteral->getPackageId()) {
                     continue;
                 }
 

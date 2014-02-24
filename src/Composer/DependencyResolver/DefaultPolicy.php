@@ -66,7 +66,7 @@ class DefaultPolicy implements PolicyInterface
 
         foreach ($packages as &$literals) {
             $policy = $this;
-            usort($literals, function ($a, $b) use ($policy, $pool, $installedMap, $requiredPackage) {
+            usort($literals, function (Literal $a, Literal $b) use ($policy, $pool, $installedMap, $requiredPackage) {
                 return $policy->compareByPriorityPreferInstalled($pool, $installedMap, $pool->literalToPackage($a), $pool->literalToPackage($b), $requiredPackage, true);
             });
         }
@@ -82,7 +82,7 @@ class DefaultPolicy implements PolicyInterface
         $selected = call_user_func_array('array_merge', $packages);
 
         // now sort the result across all packages to respect replaces across packages
-        usort($selected, function ($a, $b) use ($policy, $pool, $installedMap, $requiredPackage) {
+        usort($selected, function (Literal $a, Literal $b) use ($policy, $pool, $installedMap, $requiredPackage) {
             return $policy->compareByPriorityPreferInstalled($pool, $installedMap, $pool->literalToPackage($a), $pool->literalToPackage($b), $requiredPackage);
         });
 
@@ -99,7 +99,7 @@ class DefaultPolicy implements PolicyInterface
                 $packages[$packageName] = array();
             }
 
-            if (isset($installedMap[abs($literal)])) {
+            if (isset($installedMap[$literal->getPackageId()])) {
                 array_unshift($packages[$packageName], $literal);
             } else {
                 $packages[$packageName][] = $literal;

@@ -12,6 +12,7 @@
 
 namespace Composer\Test\DependencyResolver;
 
+use Composer\DependencyResolver\Literal;
 use Composer\Repository\ArrayRepository;
 use Composer\Repository\RepositoryInterface;
 use Composer\DependencyResolver\DefaultPolicy;
@@ -43,8 +44,8 @@ class DefaultPolicyTest extends TestCase
         $this->repo->addPackage($packageA = $this->getPackage('A', '1.0'));
         $this->pool->addRepository($this->repo);
 
-        $literals = array($packageA->getId());
-        $expected = array($packageA->getId());
+        $literals = array(new Literal($packageA->getId()));
+        $expected = array(new Literal($packageA->getId()));
 
         $selected = $this->policy->selectPreferedPackages($this->pool, array(), $literals);
 
@@ -57,8 +58,8 @@ class DefaultPolicyTest extends TestCase
         $this->repo->addPackage($packageA2 = $this->getPackage('A', '2.0'));
         $this->pool->addRepository($this->repo);
 
-        $literals = array($packageA1->getId(), $packageA2->getId());
-        $expected = array($packageA2->getId());
+        $literals = array(new Literal($packageA1->getId()), new Literal($packageA2->getId()));
+        $expected = array(new Literal($packageA2->getId()));
 
         $selected = $this->policy->selectPreferedPackages($this->pool, array(), $literals);
 
@@ -71,8 +72,8 @@ class DefaultPolicyTest extends TestCase
         $this->repo->addPackage($packageA2 = $this->getPackage('A', '1.0.1-alpha'));
         $this->pool->addRepository($this->repo);
 
-        $literals = array($packageA1->getId(), $packageA2->getId());
-        $expected = array($packageA2->getId());
+        $literals = array(new Literal($packageA1->getId()), new Literal($packageA2->getId()));
+        $expected = array(new Literal($packageA2->getId()));
 
         $selected = $this->policy->selectPreferedPackages($this->pool, array(), $literals);
 
@@ -85,8 +86,8 @@ class DefaultPolicyTest extends TestCase
         $this->repo->addPackage($packageA2 = $this->getPackage('A', '1.0.1-alpha'));
         $this->pool->addRepository($this->repo);
 
-        $literals = array($packageA1->getId(), $packageA2->getId());
-        $expected = array($packageA1->getId());
+        $literals = array(new Literal($packageA1->getId()), new Literal($packageA2->getId()));
+        $expected = array(new Literal($packageA1->getId()));
 
         $policy = new DefaultPolicy(true);
         $selected = $policy->selectPreferedPackages($this->pool, array(), $literals);
@@ -100,8 +101,8 @@ class DefaultPolicyTest extends TestCase
         $this->repo->addPackage($packageA2 = $this->getPackage('A', '1.0.0'));
         $this->pool->addRepository($this->repo);
 
-        $literals = array($packageA1->getId(), $packageA2->getId());
-        $expected = array($packageA2->getId());
+        $literals = array(new Literal($packageA1->getId()), new Literal($packageA2->getId()));
+        $expected = array(new Literal($packageA2->getId()));
 
         $selected = $this->policy->selectPreferedPackages($this->pool, array(), $literals);
 
@@ -115,8 +116,8 @@ class DefaultPolicyTest extends TestCase
         $this->pool->addRepository($this->repoInstalled);
         $this->pool->addRepository($this->repo);
 
-        $literals = array($packageA->getId(), $packageAInstalled->getId());
-        $expected = array($packageA->getId());
+        $literals = array(new Literal($packageA->getId()), new Literal($packageAInstalled->getId()));
+        $expected = array(new Literal($packageA->getId()));
 
         $selected = $this->policy->selectPreferedPackages($this->pool, $this->mapFromRepo($this->repoInstalled), $literals);
 
@@ -134,8 +135,8 @@ class DefaultPolicyTest extends TestCase
         $this->pool->addRepository($this->repoImportant);
         $this->pool->addRepository($this->repo);
 
-        $literals = array($packageA->getId(), $packageAImportant->getId());
-        $expected = array($packageAImportant->getId());
+        $literals = array(new Literal($packageA->getId()), new Literal($packageAImportant->getId()));
+        $expected = array(new Literal($packageAImportant->getId()));
 
         $selected = $this->policy->selectPreferedPackages($this->pool, array(), $literals);
 
@@ -161,7 +162,7 @@ class DefaultPolicyTest extends TestCase
         $packages = $this->pool->whatProvides('a', new VersionConstraint('=', '2.1.9999999.9999999-dev'));
         $literals = array();
         foreach ($packages as $package) {
-            $literals[] = $package->getId();
+            $literals[] = new Literal($package->getId());
         }
 
         $expected = array($packageAAliasImportant->getId());
@@ -181,7 +182,7 @@ class DefaultPolicyTest extends TestCase
 
         $this->pool->addRepository($this->repo);
 
-        $literals = array($packageA->getId(), $packageB->getId());
+        $literals = array(new Literal($packageA->getId()), new Literal($packageB->getId()));
         $expected = $literals;
 
         $selected = $this->policy->selectPreferedPackages($this->pool, array(), $literals);
@@ -198,7 +199,7 @@ class DefaultPolicyTest extends TestCase
 
         $this->pool->addRepository($this->repo);
 
-        $literals = array($packageA->getId(), $packageB->getId());
+        $literals = array(new Literal($packageA->getId()), new Literal($packageB->getId()));
         $expected = $literals;
 
         $selected = $this->policy->selectPreferedPackages($this->pool, array(), $literals);
@@ -217,7 +218,7 @@ class DefaultPolicyTest extends TestCase
 
         $this->pool->addRepository($this->repo);
 
-        $literals = array($packageA->getId(), $packageB->getId());
+        $literals = array(new Literal($packageA->getId()), new Literal($packageB->getId()));
         $expected = $literals;
 
         $selected = $this->policy->selectPreferedPackages($this->pool, array(), $literals, 'vendor-a/package');
@@ -231,7 +232,7 @@ class DefaultPolicyTest extends TestCase
         $pool = new Pool('dev');
         $pool->addRepository($this->repo);
 
-        $literals = array($packageA->getId(), $packageB->getId());
+        $literals = array(new Literal($packageA->getId()), new Literal($packageB->getId()));
         $expected = $literals;
 
         $selected = $this->policy->selectPreferedPackages($this->pool, array(), $literals, 'vendor-a/package');

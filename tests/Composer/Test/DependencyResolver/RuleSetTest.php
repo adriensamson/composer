@@ -12,6 +12,7 @@
 
 namespace Composer\Test\DependencyResolver;
 
+use Composer\DependencyResolver\Literal;
 use Composer\DependencyResolver\Rule;
 use Composer\DependencyResolver\RuleSet;
 use Composer\DependencyResolver\Pool;
@@ -162,7 +163,7 @@ class RuleSetTest extends TestCase
         $this->pool->addRepository($repo);
 
         $ruleSet = new RuleSet;
-        $literal = $p->getId();
+        $literal = new Literal($p->getId());
         $rule = new Rule($this->pool, array($literal), 'job1', null);
 
         $ruleSet->add($rule, RuleSet::TYPE_JOB);

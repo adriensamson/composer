@@ -22,7 +22,13 @@ class Decisions implements \Iterator, \Countable
     const DECISION_LITERAL = 0;
     const DECISION_REASON = 1;
 
+    /**
+     * @var Pool
+     */
     protected $pool;
+    /**
+     * @var Decision[]
+     */
     protected $decisionMap;
     protected $decisionQueue = array();
 
@@ -32,7 +38,7 @@ class Decisions implements \Iterator, \Countable
         $this->decisionMap = array();
     }
 
-    public function decide($literal, $level, $why)
+    public function decide(Literal $literal, $level, $why)
     {
         $this->addDecision($literal, $level);
         $this->decisionQueue[] = array(
@@ -41,23 +47,23 @@ class Decisions implements \Iterator, \Countable
         );
     }
 
-    public function satisfy($literal)
+    public function satisfy(Literal $literal)
     {
-        $packageId = abs($literal);
+        $packageId = $literal->getPackageId();
 
         return (
-            $literal > 0 && isset($this->decisionMap[$packageId]) && $this->decisionMap[$packageId] > 0 ||
-            $literal < 0 && isset($this->decisionMap[$packageId]) && $this->decisionMap[$packageId] < 0
+            $literal->isPositive() && isset($this->decisionMap[$packageId]) && $this->decisionMap[$packageId]->isPositive() ||
+            $literal->isNegative() && isset($this->decisionMap[$packageId]) && $this->decisionMap[$packageId]->isNegative()
         );
     }
 
-    public function conflict($literal)
+    public function conflict(Literal $literal)
     {
-        $packageId = abs($literal);
+        $packageId = $literal->getPackageId();
 
         return (
-            (isset($this->decisionMap[$packageId]) && $this->decisionMap[$packageId] > 0 && $literal < 0) ||
-            (isset($this->decisionMap[$packageId]) && $this->decisionMap[$packageId] < 0 && $literal > 0)
+            (isset($this->decisionMap[$packageId]) && $this->decisionMap[$packageId]->isPositive() && $literal->isNegative()) ||
+            (isset($this->decisionMap[$packageId]) && $this->decisionMap[$packageId]->isNegative() && $literal->isPositive())
         );
     }
 
@@ -177,9 +183,9 @@ class Decisions implements \Iterator, \Countable
         return count($this->decisionQueue) === 0;
     }
 
-    protected function addDecision($literal, $level)
+    protected function addDecision(Literal $literal, $level)
     {
-        $packageId = abs($literal);
+        $packageId = $literal->getPackageId();
 
         $previousDecision = isset($this->decisionMap[$packageId]) ? $this->decisionMap[$packageId] : null;
         if ($previousDecision != 0) {
@@ -191,9 +197,9 @@ class Decisions implements \Iterator, \Countable
         }
 
         if ($literal > 0) {
-            $this->decisionMap[$packageId] = $level;
+            $this->decisionMap[$packageId] = new Decision($level, false);
         } else {
-            $this->decisionMap[$packageId] = -$level;
+            $this->decisionMap[$packageId] = new Decision($level, true);
         }
     }
 }

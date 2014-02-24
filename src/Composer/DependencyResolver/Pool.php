@@ -14,6 +14,7 @@ namespace Composer\DependencyResolver;
 
 use Composer\Package\BasePackage;
 use Composer\Package\AliasPackage;
+use Composer\Package\PackageInterface;
 use Composer\Package\Version\VersionParser;
 use Composer\Package\Link;
 use Composer\Package\LinkConstraint\LinkConstraintInterface;
@@ -317,26 +318,26 @@ class Pool
         return array_merge($matches, $provideMatches);
     }
 
-    public function literalToPackage($literal)
+    public function literalToPackage(Literal $literal)
     {
-        $packageId = abs($literal);
+        $packageId = $literal->getPackageId();
 
         return $this->packageById($packageId);
     }
 
-    public function literalToString($literal)
+    public function literalToString(Literal $literal)
     {
-        return ($literal > 0 ? '+' : '-') . $this->literalToPackage($literal);
+        return ($literal->isPositive() ? '+' : '-') . $this->literalToPackage($literal);
     }
 
-    public function literalToPrettyString($literal, $installedMap)
+    public function literalToPrettyString(Literal $literal, $installedMap)
     {
         $package = $this->literalToPackage($literal);
 
         if (isset($installedMap[$package->getId()])) {
-            $prefix = ($literal > 0 ? 'keep' : 'remove');
+            $prefix = ($literal->isPositive() ? 'keep' : 'remove');
         } else {
-            $prefix = ($literal > 0 ? 'install' : 'don\'t install');
+            $prefix = ($literal->isPositive() ? 'install' : 'don\'t install');
         }
 
         return $prefix.' '.$package->getPrettyString();

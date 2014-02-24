@@ -47,7 +47,9 @@ class Rule
         $this->pool = $pool;
 
         // sort all packages ascending by id
-        sort($literals);
+        usort($literals, function (Literal $l1, Literal $l2) {
+            return ($l1->getPackageId() * ($l1->isNegative() ? -1 : 1)) - ($l2->getPackageId() * ($l2->isNegative() ? -1 : 1));
+        });
 
         $this->literals = $literals;
         $this->reason = $reason;
@@ -59,7 +61,7 @@ class Rule
 
         $this->type = -1;
 
-        $this->ruleHash = substr(md5(implode(',', $this->literals)), 0, 5);
+        $this->ruleHash = substr(md5(implode(',', array_map(function (Literal $l) { return ($l->isNegative() ? '-' : '') . $l->getPackageId();}, $this->literals))), 0, 5);
     }
 
     public function getHash()
