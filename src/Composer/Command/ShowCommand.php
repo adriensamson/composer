@@ -12,6 +12,7 @@
 
 namespace Composer\Command;
 
+use Composer\DependencyResolver\Literal;
 use Composer\DependencyResolver\Pool;
 use Composer\DependencyResolver\DefaultPolicy;
 use Composer\Factory;
@@ -261,7 +262,7 @@ EOT
             }
 
             $versions[$package->getPrettyVersion()] = $package->getVersion();
-            $matches[$index] = $package->getId();
+            $matches[$index] = new Literal($package->getId());
         }
 
         // select prefered package according to policy rules

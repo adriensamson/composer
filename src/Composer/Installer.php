@@ -14,6 +14,7 @@ namespace Composer;
 
 use Composer\Autoload\AutoloadGenerator;
 use Composer\DependencyResolver\DefaultPolicy;
+use Composer\DependencyResolver\Literal;
 use Composer\DependencyResolver\Operation\UpdateOperation;
 use Composer\DependencyResolver\Operation\InstallOperation;
 use Composer\DependencyResolver\Operation\UninstallOperation;
@@ -710,7 +711,7 @@ class Installer
                             continue;
                         }
 
-                        $matches[$index] = $match->getId();
+                        $matches[$index] = new Literal($match->getId());
                     }
 
                     // select prefered package according to policy rules
