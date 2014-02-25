@@ -37,4 +37,9 @@ class Literal
     {
         return $this->packageId;
     }
+
+    public function toInt()
+    {
+        return ($this->negative ? -1 : 1) * $this->packageId;
+    }
 }

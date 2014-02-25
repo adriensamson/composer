@@ -67,39 +67,34 @@ class Decisions implements \Iterator, \Countable
         );
     }
 
-    public function decided($literalOrPackageId)
+    public function decided($packageId)
     {
-        return !empty($this->decisionMap[abs($literalOrPackageId)]);
+        return !empty($this->decisionMap[$packageId]);
     }
 
-    public function undecided($literalOrPackageId)
+    public function undecided($packageId)
     {
-        return empty($this->decisionMap[abs($literalOrPackageId)]);
+        return empty($this->decisionMap[$packageId]);
     }
 
-    public function decidedInstall($literalOrPackageId)
+    public function decidedInstall($packageId)
     {
-        $packageId = abs($literalOrPackageId);
-
-        return isset($this->decisionMap[$packageId]) && $this->decisionMap[$packageId] > 0;
+        return isset($this->decisionMap[$packageId]) && $this->decisionMap[$packageId]->isPositive();
     }
 
-    public function decisionLevel($literalOrPackageId)
+    public function decisionLevel($packageId)
     {
-        $packageId = abs($literalOrPackageId);
         if (isset($this->decisionMap[$packageId])) {
-            return abs($this->decisionMap[$packageId]);
+            return $this->decisionMap[$packageId]->getLevel();
         }
 
         return 0;
     }
 
-    public function decisionRule($literalOrPackageId)
+    public function decisionRule($packageId)
     {
-        $packageId = abs($literalOrPackageId);
-
         foreach ($this->decisionQueue as $i => $decision) {
-            if ($packageId === abs($decision[self::DECISION_LITERAL])) {
+            if ($packageId === $decision[self::DECISION_LITERAL]->getPackageId()) {
                 return $decision[self::DECISION_REASON];
             }
         }
@@ -130,7 +125,7 @@ class Decisions implements \Iterator, \Countable
     public function reset()
     {
         while ($decision = array_pop($this->decisionQueue)) {
-            $this->decisionMap[abs($decision[self::DECISION_LITERAL])] = 0;
+            $this->decisionMap[$decision[self::DECISION_LITERAL]->getPackageId()] = new Decision(0, false);
         }
     }
 
@@ -138,13 +133,13 @@ class Decisions implements \Iterator, \Countable
     {
         while (count($this->decisionQueue) > $offset + 1) {
             $decision = array_pop($this->decisionQueue);
-            $this->decisionMap[abs($decision[self::DECISION_LITERAL])] = 0;
+            $this->decisionMap[$decision[self::DECISION_LITERAL]->getPackageId()] = new Decision(0, false);
         }
     }
 
     public function revertLast()
     {
-        $this->decisionMap[abs($this->lastLiteral())] = 0;
+        $this->decisionMap[$this->lastLiteral()->getPackageId()] = new Decision(0, false);
         array_pop($this->decisionQueue);
     }
 
@@ -188,7 +183,7 @@ class Decisions implements \Iterator, \Countable
         $packageId = $literal->getPackageId();
 
         $previousDecision = isset($this->decisionMap[$packageId]) ? $this->decisionMap[$packageId] : null;
-        if ($previousDecision != 0) {
+        if ($previousDecision !== null && $previousDecision->getLevel() != 0) {
             $literalString = $this->pool->literalToString($literal);
             $package = $this->pool->literalToPackage($literal);
             throw new SolverBugException(
@@ -196,7 +191,7 @@ class Decisions implements \Iterator, \Countable
             );
         }
 
-        if ($literal > 0) {
+        if ($literal->isPositive()) {
             $this->decisionMap[$packageId] = new Decision($level, false);
         } else {
             $this->decisionMap[$packageId] = new Decision($level, true);

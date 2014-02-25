@@ -61,7 +61,7 @@ class RuleWatchNode
         $watchLevel = 0;
 
         foreach ($literals as $literal) {
-            $level = $decisions->decisionLevel($literal);
+            $level = $decisions->decisionLevel($literal->getPackageId());
 
             if ($level > $watchLevel) {
                 $this->watch2 = $literal;

@@ -165,7 +165,7 @@ class DefaultPolicyTest extends TestCase
             $literals[] = new Literal($package->getId());
         }
 
-        $expected = array($packageAAliasImportant->getId());
+        $expected = array(new Literal($packageAAliasImportant->getId()));
 
         $selected = $this->policy->selectPreferedPackages($this->pool, array(), $literals);
 

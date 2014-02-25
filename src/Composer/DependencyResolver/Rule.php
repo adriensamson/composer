@@ -48,7 +48,7 @@ class Rule
 
         // sort all packages ascending by id
         usort($literals, function (Literal $l1, Literal $l2) {
-            return ($l1->getPackageId() * ($l1->isNegative() ? -1 : 1)) - ($l2->getPackageId() * ($l2->isNegative() ? -1 : 1));
+            return $l1->toInt() - $l2->toInt();
         });
 
         $this->literals = $literals;
@@ -124,7 +124,7 @@ class Rule
         }
 
         for ($i = 0, $n = count($this->literals); $i < $n; $i++) {
-            if ($this->literals[$i] !== $rule->literals[$i]) {
+            if ($this->literals[$i] != $rule->literals[$i]) {
                 return false;
             }
         }
@@ -251,7 +251,7 @@ class Rule
     {
         $prepared = array();
         foreach ($packages as $package) {
-            if (!is_object($package)) {
+            if ($package instanceof Literal) {
                 $package = $this->pool->literalToPackage($package);
             }
             $prepared[$package->getName()]['name'] = $package->getPrettyName();

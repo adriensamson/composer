@@ -50,14 +50,14 @@ class Transaction
             $package = $this->pool->literalToPackage($literal);
 
             // wanted & installed || !wanted & !installed
-            if (($literal > 0) == (isset($this->installedMap[$package->getId()]))) {
+            if (($literal->isPositive()) == (isset($this->installedMap[$package->getId()]))) {
                 continue;
             }
 
-            if ($literal > 0) {
-                if (isset($installMeansUpdateMap[abs($literal)]) && !$package instanceof AliasPackage) {
+            if ($literal->isPositive()) {
+                if (isset($installMeansUpdateMap[$literal->getPackageId()]) && !$package instanceof AliasPackage) {
 
-                    $source = $installMeansUpdateMap[abs($literal)];
+                    $source = $installMeansUpdateMap[$literal->getPackageId()];
 
                     $updateMap[$package->getId()] = array(
                         'package' => $package,
@@ -66,7 +66,7 @@ class Transaction
                     );
 
                     // avoid updates to one package from multiple origins
-                    unset($installMeansUpdateMap[abs($literal)]);
+                    unset($installMeansUpdateMap[$literal->getPackageId()]);
                     $ignoreRemove[$source->getId()] = true;
                 } else {
                     $installMap[$package->getId()] = array(
@@ -81,7 +81,7 @@ class Transaction
             $literal = $decision[Decisions::DECISION_LITERAL];
             $package = $this->pool->literalToPackage($literal);
 
-            if ($literal <= 0 &&
+            if ($literal->isNegative() &&
                 isset($this->installedMap[$package->getId()]) &&
                 !isset($ignoreRemove[$package->getId()])) {
                 $uninstallMap[$package->getId()] = array(
@@ -188,7 +188,7 @@ class Transaction
             }
 
             // !wanted & installed
-            if ($literal <= 0 && isset($this->installedMap[$package->getId()])) {
+            if ($literal->isNegative() && isset($this->installedMap[$package->getId()])) {
                 $updates = $this->policy->findUpdatePackages($this->pool, $this->installedMap, $package);
 
                 $literals = array($package->getId());

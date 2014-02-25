@@ -45,11 +45,11 @@ class RuleWatchGraph
         }
 
         foreach (array($node->watch1, $node->watch2) as $literal) {
-            if (!isset($this->watchChains[$literal])) {
-                $this->watchChains[$literal] = new RuleWatchChain;
+            if (!isset($this->watchChains[$literal->toInt()])) {
+                $this->watchChains[$literal->toInt()] = new RuleWatchChain;
             }
 
-            $this->watchChains[$literal]->unshift($node);
+            $this->watchChains[$literal->toInt()]->unshift($node);
         }
     }
 
@@ -69,25 +69,25 @@ class RuleWatchGraph
      * above example the rule was (-A|+B), then A turning true means that
      * B must now be decided true as well.
      *
-     * @param int $decidedLiteral The literal which was decided (A in our example)
+     * @param Literal $decidedLiteral The literal which was decided (A in our example)
      * @param int $level          The level at which the decision took place and at which
      *     all resulting decisions should be made.
      * @param Decisions $decisions Used to check previous decisions and to
      *     register decisions resulting from propagation
      * @return Rule|null If a conflict is found the conflicting rule is returned
      */
-    public function propagateLiteral($decidedLiteral, $level, $decisions)
+    public function propagateLiteral(Literal $decidedLiteral, $level, $decisions)
     {
         // we invert the decided literal here, example:
         // A was decided => (-A|B) now requires B to be true, so we look for
         // rules which are fulfilled by -A, rather than A.
-        $literal = -$decidedLiteral;
+        $literal = new Literal(-$decidedLiteral->toInt());
 
-        if (!isset($this->watchChains[$literal])) {
+        if (!isset($this->watchChains[$literal->toInt()])) {
             return null;
         }
 
-        $chain = $this->watchChains[$literal];
+        $chain = $this->watchChains[$literal->toInt()];
 
         $chain->rewind();
         while ($chain->valid()) {
@@ -131,14 +131,14 @@ class RuleWatchGraph
      * @param $toLiteral mixed A literal the node should watch now
      * @param $node mixed The rule node to be moved
      */
-    protected function moveWatch($fromLiteral, $toLiteral, $node)
+    protected function moveWatch(Literal $fromLiteral, Literal $toLiteral, $node)
     {
-        if (!isset($this->watchChains[$toLiteral])) {
-            $this->watchChains[$toLiteral] = new RuleWatchChain;
+        if (!isset($this->watchChains[$toLiteral->toInt()])) {
+            $this->watchChains[$toLiteral->toInt()] = new RuleWatchChain;
         }
 
         $node->moveWatch($fromLiteral, $toLiteral);
-        $this->watchChains[$fromLiteral]->remove();
-        $this->watchChains[$toLiteral]->unshift($node);
+        $this->watchChains[$fromLiteral->toInt()]->remove();
+        $this->watchChains[$toLiteral->toInt()]->unshift($node);
     }
 }
