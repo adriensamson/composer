@@ -67,23 +67,26 @@ class Decisions implements \Iterator, \Countable
         );
     }
 
-    public function decided($packageId)
+    public function decided(Literal $literal)
     {
-        return !empty($this->decisionMap[$packageId]);
+        return !empty($this->decisionMap[$literal->getPackageId()]);
     }
 
-    public function undecided($packageId)
+    public function undecided(Literal $literal)
     {
-        return empty($this->decisionMap[$packageId]);
+        return empty($this->decisionMap[$literal->getPackageId()]);
     }
 
-    public function decidedInstall($packageId)
+    public function decidedInstall(Literal $literal)
     {
+        $packageId = $literal->getPackageId();
+
         return isset($this->decisionMap[$packageId]) && $this->decisionMap[$packageId]->isPositive();
     }
 
-    public function decisionLevel($packageId)
+    public function decisionLevel(Literal $literal)
     {
+        $packageId = $literal->getPackageId();
         if (isset($this->decisionMap[$packageId])) {
             return $this->decisionMap[$packageId]->getLevel();
         }
@@ -91,8 +94,9 @@ class Decisions implements \Iterator, \Countable
         return 0;
     }
 
-    public function decisionRule($packageId)
+    public function decisionRule(Literal $literal)
     {
+        $packageId = $literal->getPackageId();
         foreach ($this->decisionQueue as $i => $decision) {
             if ($packageId === $decision[self::DECISION_LITERAL]->getPackageId()) {
                 return $decision[self::DECISION_REASON];

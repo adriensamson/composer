@@ -67,7 +67,7 @@ class Solver
             $literals = $rule->getLiterals();
             $literal = $literals[0];
 
-            if (!$this->decisions->decided($literal->getPackageId())) {
+            if (!$this->decisions->decided($literal)) {
                 $this->decisions->decide($literal, 1, $rule);
                 continue;
             }
@@ -82,7 +82,7 @@ class Solver
                 continue;
             }
 
-            $conflict = $this->decisions->decisionRule($literal->getPackageId());
+            $conflict = $this->decisions->decisionRule($literal);
 
             if ($conflict && RuleSet::TYPE_PACKAGE === $conflict->getType()) {
 
@@ -181,7 +181,7 @@ class Solver
 
         // decide to remove everything that's installed and undecided
         foreach ($this->installedMap as $packageId => $void) {
-            if ($this->decisions->undecided($packageId)) {
+            if ($this->decisions->undecided(new Literal($packageId))) {
                 $this->decisions->decide(new Literal(-$packageId), 1, null);
             }
         }
@@ -240,11 +240,11 @@ class Solver
         while (!$this->decisions->isEmpty()) {
             $literal = $this->decisions->lastLiteral();
 
-            if ($this->decisions->undecided($literal->getPackageId())) {
+            if ($this->decisions->undecided($literal)) {
                 break;
             }
 
-            $decisionLevel = $this->decisions->decisionLevel($literal->getPackageId());
+            $decisionLevel = $this->decisions->decisionLevel($literal);
 
             if ($decisionLevel <= $level) {
                 break;
@@ -364,7 +364,7 @@ class Solver
                 }
                 $seen[$literal->getPackageId()] = true;
 
-                $l = $this->decisions->decisionLevel($literal->getPackageId());
+                $l = $this->decisions->decisionLevel($literal);
 
                 if (1 === $l) {
                     $l1num++;
@@ -630,7 +630,7 @@ class Solver
                                 $noneSatisfied = false;
                                 break;
                             }
-                            if ($literal->isPositive() && $this->decisions->undecided($literal->getPackageId())) {
+                            if ($literal->isPositive() && $this->decisions->undecided($literal)) {
                                 $decisionQueue[] = $literal;
                             }
                         }
@@ -703,14 +703,14 @@ class Solver
                 //
                 foreach ($literals as $literal) {
                     if ($literal->isNegative()) {
-                        if (!$this->decisions->decidedInstall($literal->getPackageId())) {
+                        if (!$this->decisions->decidedInstall($literal)) {
                             continue 2; // next rule
                         }
                     } else {
-                        if ($this->decisions->decidedInstall($literal->getPackageId())) {
+                        if ($this->decisions->decidedInstall($literal)) {
                             continue 2; // next rule
                         }
-                        if ($this->decisions->undecided($literal->getPackageId())) {
+                        if ($this->decisions->undecided($literal)) {
                             $decisionQueue[] = $literal;
                         }
                     }
@@ -749,7 +749,7 @@ class Solver
                     list($literals, $l) = $this->branches[$i];
 
                     foreach ($literals as $offset => $literal) {
-                        if ($literal && $literal->isPositive() && $this->decisions->decisionLevel($literal->getPackageId()) > $l + 1) {
+                        if ($literal && $literal->isPositive() && $this->decisions->decisionLevel($literal) > $l + 1) {
                             $lastLiteral = $literal;
                             $lastBranchIndex = $i;
                             $lastBranchOffset = $offset;
