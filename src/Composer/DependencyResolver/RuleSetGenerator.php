@@ -50,14 +50,14 @@ class RuleSetGenerator
      */
     protected function createRequireRule(PackageInterface $package, array $providers, $reason, $reasonData = null)
     {
-        $literals = array(new Literal(-$package->getId()));
+        $literals = array(new Literal($package->getName(), -$package->getId()));
 
         foreach ($providers as $provider) {
             // self fulfilling rule?
             if ($provider === $package) {
                 return null;
             }
-            $literals[] = new Literal($provider->getId());
+            $literals[] = new Literal($provider->getName(), $provider->getId());
         }
 
         return new Rule($this->pool, $literals, $reason, $reasonData);
@@ -79,7 +79,7 @@ class RuleSetGenerator
     {
         $literals = array();
         foreach ($packages as $package) {
-            $literals[] = new Literal($package->getId());
+            $literals[] = new Literal($package->getName(), $package->getId());
         }
 
         return new Rule($this->pool, $literals, $reason, $job['packageName'], $job);
@@ -98,7 +98,7 @@ class RuleSetGenerator
      */
     protected function createRemoveRule(PackageInterface $package, $reason, $job)
     {
-        return new Rule($this->pool, array(new Literal(-$package->getId())), $reason, $job['packageName'], $job);
+        return new Rule($this->pool, array(new Literal($package->getName(), -$package->getId())), $reason, $job['packageName'], $job);
     }
 
     /**
@@ -122,7 +122,7 @@ class RuleSetGenerator
             return null;
         }
 
-        return new Rule($this->pool, array(new Literal(-$issuer->getId()), new Literal(-$provider->getId())), $reason, $reasonData);
+        return new Rule($this->pool, array(new Literal($issuer->getName(), -$issuer->getId()), new Literal($provider->getName(), -$provider->getId())), $reason, $reasonData);
     }
 
     /**

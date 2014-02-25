@@ -711,7 +711,7 @@ class Installer
                             continue;
                         }
 
-                        $matches[$index] = new Literal($match->getId());
+                        $matches[$index] = new Literal($package->getName(), $match->getId());
                     }
 
                     // select prefered package according to policy rules

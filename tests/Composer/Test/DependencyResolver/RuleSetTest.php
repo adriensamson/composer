@@ -163,7 +163,7 @@ class RuleSetTest extends TestCase
         $this->pool->addRepository($repo);
 
         $ruleSet = new RuleSet;
-        $literal = new Literal($p->getId());
+        $literal = new Literal($p->getName(), $p->getId());
         $rule = new Rule($this->pool, array($literal), 'job1', null);
 
         $ruleSet->add($rule, RuleSet::TYPE_JOB);

@@ -6,12 +6,14 @@ namespace Composer\DependencyResolver;
 class Literal
 {
     protected $packageId;
+    protected $packageName;
     protected $negative;
 
-    public function __construct($literal)
+    public function __construct($packageName, $literal)
     {
-        $this->packageId = abs($literal);
-        $this->negative  = $literal < 0;
+        $this->packageName = $packageName;
+        $this->packageId   = abs($literal);
+        $this->negative    = $literal < 0;
     }
 
     /**
@@ -38,6 +40,17 @@ class Literal
         return $this->packageId;
     }
 
+    /**
+     * @return string
+     */
+    public function getPackageName()
+    {
+        return $this->packageName;
+    }
+
+    /**
+     * @return int
+     */
     public function toInt()
     {
         return ($this->negative ? -1 : 1) * $this->packageId;

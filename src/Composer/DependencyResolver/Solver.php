@@ -181,8 +181,8 @@ class Solver
 
         // decide to remove everything that's installed and undecided
         foreach ($this->installedMap as $packageId => $void) {
-            if ($this->decisions->undecided(new Literal($packageId))) {
-                $this->decisions->decide(new Literal(-$packageId), 1, null);
+            if ($this->decisions->undecided(new Literal($this->pool->packageById($packageId)->getName(), $packageId))) {
+                $this->decisions->decide(new Literal($this->pool->packageById($packageId)->getName(), -$packageId), 1, null);
             }
         }
 
@@ -197,9 +197,10 @@ class Solver
 
     protected function literalFromId($id)
     {
+        die('probably unused');
         $package = $this->pool->packageById(abs($id));
 
-        return new Literal($package, $id > 0);
+        return new Literal($package->getName(), $package->getId(), $id > 0);
     }
 
     /**
@@ -409,7 +410,7 @@ class Solver
                 unset($seen[$literal->getPackageId()]);
 
                 if ($num && 0 === --$num) {
-                    $learnedLiterals[0] = new Literal(-$literal->getPackageId());
+                    $learnedLiterals[0] = new Literal($literal->getPackageName(), -$literal->getPackageId());
 
                     if (!$l1num) {
                         break 2;
