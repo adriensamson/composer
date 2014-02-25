@@ -98,8 +98,8 @@ class RuleWatchGraph
                 $ruleLiterals = $node->getRule()->getLiterals();
 
                 $alternativeLiterals = array_filter($ruleLiterals, function ($ruleLiteral) use ($literal, $otherWatch, $decisions) {
-                    return $literal !== $ruleLiteral &&
-                        $otherWatch !== $ruleLiteral &&
+                    return $literal != $ruleLiteral &&
+                        $otherWatch != $ruleLiteral &&
                         !$decisions->conflict($ruleLiteral);
                 });
 

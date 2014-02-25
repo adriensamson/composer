@@ -125,7 +125,7 @@ class Decisions implements \Iterator, \Countable
     public function reset()
     {
         while ($decision = array_pop($this->decisionQueue)) {
-            $this->decisionMap[$decision[self::DECISION_LITERAL]->getPackageId()] = new Decision(0, false);
+            unset($this->decisionMap[$decision[self::DECISION_LITERAL]->getPackageId()]);
         }
     }
 
@@ -133,13 +133,13 @@ class Decisions implements \Iterator, \Countable
     {
         while (count($this->decisionQueue) > $offset + 1) {
             $decision = array_pop($this->decisionQueue);
-            $this->decisionMap[$decision[self::DECISION_LITERAL]->getPackageId()] = new Decision(0, false);
+            unset($this->decisionMap[$decision[self::DECISION_LITERAL]->getPackageId()]);
         }
     }
 
     public function revertLast()
     {
-        $this->decisionMap[$this->lastLiteral()->getPackageId()] = new Decision(0, false);
+        unset($this->decisionMap[$this->lastLiteral()->getPackageId()]);
         array_pop($this->decisionQueue);
     }
 
