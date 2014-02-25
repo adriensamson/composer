@@ -61,7 +61,7 @@ class Rule
 
         $this->type = -1;
 
-        $this->ruleHash = substr(md5(implode(',', array_map(function (Literal $l) { return ($l->isNegative() ? '-' : '') . $l->getPackageId();}, $this->literals))), 0, 5);
+        $this->ruleHash = substr(md5(implode(',', array_map(function (Literal $l) { return $l->toInt();}, $this->literals))), 0, 5);
     }
 
     public function getHash()
