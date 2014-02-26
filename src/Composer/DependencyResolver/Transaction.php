@@ -179,27 +179,20 @@ class Transaction
     {
         $installMeansUpdateMap = array();
 
-        foreach ($this->decisions as $i => $decision) {
-            $literal = $decision[Decisions::DECISION_LITERAL];
-            $package = $this->pool->literalToPackage($literal);
-
-            if ($package instanceof AliasPackage) {
-                continue;
-            }
-
-            // !wanted & installed
-            if ($literal->isNegative() && isset($this->installedMap[$package->getId()])) {
+        foreach ($this->installedMap as $packageId => $package) {
+            $literal = Literal::createPositiveFromPackage($package);
+            if (!$this->decisions->decidedInstall($literal)) {
                 $updates = $this->policy->findUpdatePackages($this->pool, $this->installedMap, $package);
 
-                $literals = array($package->getId());
+                $literals = array($literal);
 
                 foreach ($updates as $update) {
-                    $literals[] = $update->getId();
+                    $literals[] = Literal::createPositiveFromPackage($update);
                 }
 
                 foreach ($literals as $updateLiteral) {
-                    if ($updateLiteral !== $literal) {
-                        $installMeansUpdateMap[abs($updateLiteral)] = $package;
+                    if ($updateLiteral != $literal) {
+                        $installMeansUpdateMap[$updateLiteral->getPackageId()] = $package;
                     }
                 }
             }
