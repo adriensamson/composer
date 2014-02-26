@@ -62,7 +62,7 @@ class Decisions implements \Iterator, \Countable
         $packageName = $literal->getPackageName();
 
         return (
-            (isset($this->decisionMap[$packageName]) && !$this->decisionMap[$packageName]->isNegative() && $literal->isNegative()) ||
+            (isset($this->decisionMap[$packageName]) && $this->decisionMap[$packageName]->isLiteral($literal) && $literal->isNegative()) ||
             (isset($this->decisionMap[$packageName]) && !$this->decisionMap[$packageName]->isLiteral($literal) && $literal->isPositive())
         );
     }
