@@ -60,7 +60,7 @@ class Literal
      */
     public function getPackageName()
     {
-        return $this->packageName;
+        return $this->packageName . ($this->aliasOf ? '/'.$this->aliasOf : '');
     }
 
     public function getAliasOf()
