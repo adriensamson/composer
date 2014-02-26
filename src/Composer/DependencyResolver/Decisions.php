@@ -30,6 +30,7 @@ class Decisions implements \Iterator, \Countable
      * @var Decision[]
      */
     protected $decisionMap;
+    protected $previousDecisions;
     protected $decisionQueue = array();
 
     public function __construct($pool)
@@ -52,8 +53,8 @@ class Decisions implements \Iterator, \Countable
         $packageName = $literal->getPackageName();
 
         return (
-            $literal->isPositive() && isset($this->decisionMap[$packageName]) && $this->decisionMap[$packageName]->isLiteral($literal) ||
-            $literal->isNegative() && isset($this->decisionMap[$packageName]) && $this->decisionMap[$packageName]->isNegative()
+            $literal->isPositive() && isset($this->decisionMap[$packageName]) && $this->decisionMap[$packageName]->isPositive($literal) ||
+            $literal->isNegative() && isset($this->decisionMap[$packageName]) && $this->decisionMap[$packageName]->isNegative($literal)
         );
     }
 
@@ -62,26 +63,31 @@ class Decisions implements \Iterator, \Countable
         $packageName = $literal->getPackageName();
 
         return (
-            (isset($this->decisionMap[$packageName]) && $this->decisionMap[$packageName]->isLiteral($literal) && $literal->isNegative()) ||
-            (isset($this->decisionMap[$packageName]) && !$this->decisionMap[$packageName]->isLiteral($literal) && $literal->isPositive())
+            (isset($this->decisionMap[$packageName]) && $this->decisionMap[$packageName]->isPositive($literal) && $literal->isNegative()) ||
+            (isset($this->decisionMap[$packageName]) && $this->decisionMap[$packageName]->isNegative($literal) && $literal->isPositive())
         );
     }
 
     public function decided(Literal $literal)
     {
-        return !empty($this->decisionMap[$literal->getPackageName()]);
+        if (!isset($this->decisionMap[$literal->getPackageName()])) {
+            return false;
+        }
+        $decision = $this->decisionMap[$literal->getPackageName()];
+
+        return $decision->isPositive($literal) || $decision->isNegative($literal);
     }
 
     public function undecided(Literal $literal)
     {
-        return empty($this->decisionMap[$literal->getPackageName()]);
+        return !$this->decided($literal);
     }
 
     public function decidedInstall(Literal $literal)
     {
         $packageName = $literal->getPackageName();
 
-        return isset($this->decisionMap[$packageName]) && $this->decisionMap[$packageName]->isLiteral($literal);
+        return isset($this->decisionMap[$packageName]) && $this->decisionMap[$packageName]->isPositive($literal);
     }
 
     public function decisionLevel(Literal $literal)
@@ -129,7 +135,7 @@ class Decisions implements \Iterator, \Countable
     public function reset()
     {
         while ($decision = array_pop($this->decisionQueue)) {
-            unset($this->decisionMap[$decision[self::DECISION_LITERAL]->getPackageName()]);
+            $this->revertLiteral($decision[self::DECISION_LITERAL]);
         }
     }
 
@@ -137,14 +143,25 @@ class Decisions implements \Iterator, \Countable
     {
         while (count($this->decisionQueue) > $offset + 1) {
             $decision = array_pop($this->decisionQueue);
-            unset($this->decisionMap[$decision[self::DECISION_LITERAL]->getPackageName()]);
+            $this->revertLiteral($decision[self::DECISION_LITERAL]);
         }
     }
 
     public function revertLast()
     {
-        unset($this->decisionMap[$this->lastLiteral()->getPackageName()]);
+        $this->revertLiteral($this->lastLiteral());
         array_pop($this->decisionQueue);
+    }
+
+    protected function revertLiteral(Literal $literal)
+    {
+        $level = $this->decisionMap[$literal->getPackageName()]->getLevel();
+        if (isset($this->previousDecisions[$literal->getPackageName()][$level])) {
+            $this->decisionMap[$literal->getPackageName()] = $this->previousDecisions[$literal->getPackageName()][$level];
+            unset($this->previousDecisions[$literal->getPackageName()][$level]);
+        } else {
+            unset($this->decisionMap[$literal->getPackageName()]);
+        }
     }
 
     public function count()
@@ -187,19 +204,25 @@ class Decisions implements \Iterator, \Countable
         $packageName = $literal->getPackageName();
 
         $previousDecision = isset($this->decisionMap[$packageName]) ? $this->decisionMap[$packageName] : null;
+        $previousNegatives = array();
         if ($previousDecision !== null && $previousDecision->getLevel() != 0) {
-            $literalString = $this->pool->literalToString($literal);
-            $package = $this->pool->literalToPackage($literal);
-            $previousLiteralString = $this->pool->literalToString($previousDecision->getLiteral());
-            throw new SolverBugException(
-                "Trying to decide $literalString on level $level, even though $package was previously decided as ".$previousLiteralString."."
-            );
+            if ($previousDecision->getPackageId() === null) {
+                $previousNegatives = $previousDecision->getNegativePackageIds();
+            } else {
+                $literalString = $this->pool->literalToString($literal);
+                $package = $this->pool->literalToPackage($literal);
+                $previousLiteralString = $this->pool->literalToString($previousDecision->getPackageId());
+                throw new SolverBugException(
+                    "Trying to decide $literalString on level $level, even though $package was previously decided as ".$previousLiteralString."."
+                );
+            }
         }
 
+        $this->previousDecisions[$packageName][$level] = $previousDecision;
         if ($literal->isPositive()) {
-            $this->decisionMap[$packageName] = new Decision($level, $literal);
+            $this->decisionMap[$packageName] = new Decision($level, $literal->getPackageId());
         } else {
-            $this->decisionMap[$packageName] = new Decision($level, false);
+            $this->decisionMap[$packageName] = new Decision($level, null, array_merge($previousNegatives, array($literal->getPackageId())));
         }
     }
 }

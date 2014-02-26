@@ -6,29 +6,36 @@ namespace Composer\DependencyResolver;
 class Decision
 {
     protected $level;
-    protected $literalOrNegative;
+    protected $packageId;
+    protected $negativePackageIds;
 
-    public function __construct($level, $literalOrNegative)
+    public function __construct($level, $packageId = null, array $negativePackageIds = array())
     {
-        $this->level             = $level;
-        $this->literalOrNegative = $literalOrNegative;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isNegative()
-    {
-        return $this->literalOrNegative === false;
+        $this->level              = $level;
+        $this->packageId          = $packageId;
+        $this->negativePackageIds = $negativePackageIds;
     }
 
     /**
      * @param Literal $literal
      * @return bool
      */
-    public function isLiteral(Literal $literal)
+    public function isNegative(Literal $literal)
     {
-        return $this->literalOrNegative == $literal;
+        if (null !== $this->packageId) {
+            return $this->packageId != $literal->getPackageId();
+        }
+
+        return in_array($literal->getPackageId(), $this->negativePackageIds);
+    }
+
+    /**
+     * @param Literal $literal
+     * @return bool
+     */
+    public function isPositive(Literal $literal)
+    {
+        return $this->packageId == $literal->getPackageId();
     }
 
     /**
@@ -39,8 +46,13 @@ class Decision
         return $this->level;
     }
 
-    public function getLiteral()
+    public function getPackageId()
     {
-        return $this->literalOrNegative;
+        return $this->packageId;
+    }
+
+    public function getNegativePackageIds()
+    {
+        return $this->negativePackageIds;
     }
 } 
