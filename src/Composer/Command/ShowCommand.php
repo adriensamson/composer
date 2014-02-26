@@ -262,7 +262,7 @@ EOT
             }
 
             $versions[$package->getPrettyVersion()] = $package->getVersion();
-            $matches[$index] = new Literal($package->getName(), $package->getId());
+            $matches[$index] = Literal::createPositiveFromPackage($package);
         }
 
         // select prefered package according to policy rules

@@ -110,7 +110,7 @@ class RuleTest extends TestCase
         $repo->addPackage($p2 = $this->getPackage('baz', '1.1'));
         $this->pool->addRepository($repo);
 
-        $rule = new Rule($this->pool, array(new Literal($p1->getName(), $p1->getId()), new Literal($p2->getName(), -$p2->getId())), 'job1', null);
+        $rule = new Rule($this->pool, array(Literal::createPositiveFromPackage($p1), Literal::createNegativeFromPackage($p2)), 'job1', null);
 
         $this->assertEquals('(-baz-1.1.0.0|+foo-2.1.0.0)', $rule->__toString());
     }

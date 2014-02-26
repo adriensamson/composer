@@ -3,17 +3,32 @@
 namespace Composer\DependencyResolver;
 
 
+use Composer\Package\AliasPackage;
+use Composer\Package\PackageInterface;
+
 class Literal
 {
     protected $packageId;
     protected $packageName;
     protected $negative;
+    protected $aliasOf;
 
-    public function __construct($packageName, $literal)
+    public function __construct($packageName, $literal, $aliasOf = null)
     {
         $this->packageName = $packageName;
         $this->packageId   = abs($literal);
         $this->negative    = $literal < 0;
+        $this->aliasOf     = $aliasOf;
+    }
+
+    public static function createPositiveFromPackage(PackageInterface $package)
+    {
+        return new self($package->getName(), $package->getId(), $package instanceof AliasPackage ? $package->getAliasOf()->getId() : null);
+    }
+
+    public static function createNegativeFromPackage(PackageInterface $package)
+    {
+        return new self($package->getName(), -$package->getId(), $package instanceof AliasPackage ? $package->getAliasOf()->getId() : null);
     }
 
     /**
@@ -46,6 +61,11 @@ class Literal
     public function getPackageName()
     {
         return $this->packageName;
+    }
+
+    public function getAliasOf()
+    {
+        return $this->aliasOf;
     }
 
     /**

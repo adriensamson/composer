@@ -711,7 +711,7 @@ class Installer
                             continue;
                         }
 
-                        $matches[$index] = new Literal($package->getName(), $match->getId());
+                        $matches[$index] = Literal::createPositiveFromPackage($match);
                     }
 
                     // select prefered package according to policy rules
