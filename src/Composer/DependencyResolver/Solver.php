@@ -704,7 +704,7 @@ class Solver
                 //
                 foreach ($literals as $literal) {
                     if ($literal->isNegative()) {
-                        if (!$this->decisions->decidedInstall($literal)) {
+                        if ($this->decisions->decidedRemove($literal)) {
                             continue 2; // next rule
                         }
                     } else {

@@ -90,11 +90,17 @@ class Decisions implements \Iterator, \Countable
         return isset($this->decisionMap[$packageName]) && $this->decisionMap[$packageName]->isPositive($literal);
     }
 
-    public function decisionLevel(Literal $literal)
+    public function decidedRemove(Literal $literal)
     {
         $packageName = $literal->getPackageName();
-        if (isset($this->decisionMap[$packageName])) {
-            return $this->decisionMap[$packageName]->getLevel();
+
+        return isset($this->decisionMap[$packageName]) && $this->decisionMap[$packageName]->isNegative($literal);
+    }
+
+    public function decisionLevel(Literal $literal)
+    {
+        if ($this->decided($literal)) {
+            return $this->decisionMap[$literal->getPackageName()]->getLevel();
         }
 
         return 0;
