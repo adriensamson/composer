@@ -410,7 +410,7 @@ class Solver
                 unset($seen[$literal->getPackageId()]);
 
                 if ($num && 0 === --$num) {
-                    $learnedLiterals[0] = new Literal($literal->getPackageName(), -$literal->getPackageId(), $literal->getAliasOf());
+                    $learnedLiterals[0] = $literal->getOppositeLiteral();
 
                     if (!$l1num) {
                         break 2;

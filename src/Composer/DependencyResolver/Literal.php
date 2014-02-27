@@ -31,6 +31,11 @@ class Literal
         return new self($package->getName(), -$package->getId(), $package instanceof AliasPackage ? $package->getAliasOf()->getId() : null);
     }
 
+    public function getOppositeLiteral()
+    {
+        return new self($this->packageName, $this->negative ? $this->packageId : -$this->packageId, $this->aliasOf);
+    }
+
     /**
      * @return bool
      */

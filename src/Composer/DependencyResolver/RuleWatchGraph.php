@@ -81,7 +81,7 @@ class RuleWatchGraph
         // we invert the decided literal here, example:
         // A was decided => (-A|B) now requires B to be true, so we look for
         // rules which are fulfilled by -A, rather than A.
-        $literal = new Literal($decidedLiteral->getPackageName(), -$decidedLiteral->toInt(), $decidedLiteral->getAliasOf());
+        $literal = $decidedLiteral->getOppositeLiteral();
 
         if (!isset($this->watchChains[$literal->toInt()])) {
             return null;
