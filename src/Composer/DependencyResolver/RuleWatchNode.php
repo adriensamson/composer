@@ -86,9 +86,9 @@ class RuleWatchNode
      * @param int The watched literal that should not be returned
      * @return int A literal
      */
-    public function getOtherWatch($literal)
+    public function getOtherWatch($literalInt)
     {
-        if ($this->watch1 == $literal) {
+        if ($this->watch1->toInt() == $literalInt) {
             return $this->watch2;
         } else {
             return $this->watch1;
@@ -98,12 +98,12 @@ class RuleWatchNode
     /**
      * Moves a watch from one literal to another
      *
-     * @param int $from The previously watched literal
-     * @param int $to   The literal to be watched now
+     * @param int $fromInt The previously watched literal
+     * @param Literal $to   The literal to be watched now
      */
-    public function moveWatch($from, $to)
+    public function moveWatch($fromInt, Literal $to)
     {
-        if ($this->watch1 == $from) {
+        if ($this->watch1->toInt() == $fromInt) {
             $this->watch1 = $to;
         } else {
             $this->watch2 = $to;

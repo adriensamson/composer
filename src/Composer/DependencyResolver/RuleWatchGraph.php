@@ -45,11 +45,11 @@ class RuleWatchGraph
         }
 
         foreach (array($node->watch1, $node->watch2) as $literal) {
-            if (!isset($this->watchChains[$literal->toInt()])) {
-                $this->watchChains[$literal->toInt()] = new RuleWatchChain;
+            if (!isset($this->watchChains[$literal->getPackageName()][$literal->toInt()])) {
+                $this->watchChains[$literal->getPackageName()][$literal->toInt()] = new RuleWatchChain;
             }
 
-            $this->watchChains[$literal->toInt()]->unshift($node);
+            $this->watchChains[$literal->getPackageName()][$literal->toInt()]->unshift($node);
         }
     }
 
@@ -78,48 +78,58 @@ class RuleWatchGraph
      */
     public function propagateLiteral(Literal $decidedLiteral, $level, $decisions)
     {
-        // we invert the decided literal here, example:
-        // A was decided => (-A|B) now requires B to be true, so we look for
-        // rules which are fulfilled by -A, rather than A.
-        $literal = $decidedLiteral->getOppositeLiteral();
+        foreach ($this->getWatchChains($decidedLiteral) as $literalInt => $chain) {
+            $chain->rewind();
+            while ($chain->valid()) {
+                $node = $chain->current();
+                $otherWatch = $node->getOtherWatch($literalInt);
 
-        if (!isset($this->watchChains[$literal->toInt()])) {
-            return null;
-        }
+                if (!$node->getRule()->isDisabled() && !$decisions->satisfy($otherWatch)) {
+                    $ruleLiterals = $node->getRule()->getLiterals();
 
-        $chain = $this->watchChains[$literal->toInt()];
-
-        $chain->rewind();
-        while ($chain->valid()) {
-            $node = $chain->current();
-            $otherWatch = $node->getOtherWatch($literal);
-
-            if (!$node->getRule()->isDisabled() && !$decisions->satisfy($otherWatch)) {
-                $ruleLiterals = $node->getRule()->getLiterals();
-
-                $alternativeLiterals = array_filter($ruleLiterals, function ($ruleLiteral) use ($literal, $otherWatch, $decisions) {
-                    return $literal != $ruleLiteral &&
+                    $alternativeLiterals = array_filter($ruleLiterals, function ($ruleLiteral) use ($literalInt, $otherWatch, $decisions) {
+                        return $literalInt != $ruleLiteral->toInt() &&
                         $otherWatch != $ruleLiteral &&
                         !$decisions->conflict($ruleLiteral);
-                });
+                    });
 
-                if ($alternativeLiterals) {
-                    reset($alternativeLiterals);
-                    $this->moveWatch($literal, current($alternativeLiterals), $node);
-                    continue;
+                    if ($alternativeLiterals) {
+                        reset($alternativeLiterals);
+                        $this->moveWatch($decidedLiteral->getPackageName(), $literalInt, current($alternativeLiterals), $node);
+                        continue;
+                    }
+
+                    if ($decisions->conflict($otherWatch)) {
+                        return $node->getRule();
+                    }
+
+                    $decisions->decide($otherWatch, $level, $node->getRule());
                 }
 
-                if ($decisions->conflict($otherWatch)) {
-                    return $node->getRule();
-                }
-
-                $decisions->decide($otherWatch, $level, $node->getRule());
+                $chain->next();
             }
-
-            $chain->next();
         }
 
         return null;
+    }
+
+    protected function getWatchChains(Literal $literal)
+    {
+        $chains = array();
+
+        $oppositeLiteral = $literal->getOppositeLiteral();
+        if (isset($this->watchChains[$oppositeLiteral->getPackageName()][$oppositeLiteral->toInt()])) {
+            $chains[$oppositeLiteral->toInt()] = $this->watchChains[$oppositeLiteral->getPackageName()][$oppositeLiteral->toInt()];
+        }
+        if ($literal->isPositive() && isset($this->watchChains[$oppositeLiteral->getPackageName()])) {
+            foreach ($this->watchChains[$oppositeLiteral->getPackageName()] as $literalInt => $chain) {
+                if ($literalInt > 0 && $literalInt != $literal->toInt()) {
+                    $chains[$literalInt] = $chain;
+                }
+            }
+        }
+
+        return $chains;
     }
 
     /**
@@ -127,18 +137,19 @@ class RuleWatchGraph
      *
      * The rule node's watched literals are updated accordingly.
      *
-     * @param $fromLiteral mixed A literal the node used to watch
+     * @param $fromPackageName
+     * @param $fromLiteralInt mixed A literal the node used to watch
      * @param $toLiteral mixed A literal the node should watch now
      * @param $node mixed The rule node to be moved
      */
-    protected function moveWatch(Literal $fromLiteral, Literal $toLiteral, $node)
+    protected function moveWatch($fromPackageName, $fromLiteralInt, Literal $toLiteral, $node)
     {
-        if (!isset($this->watchChains[$toLiteral->toInt()])) {
-            $this->watchChains[$toLiteral->toInt()] = new RuleWatchChain;
+        if (!isset($this->watchChains[$toLiteral->getPackageName()][$toLiteral->toInt()])) {
+            $this->watchChains[$toLiteral->getPackageName()][$toLiteral->toInt()] = new RuleWatchChain;
         }
 
-        $node->moveWatch($fromLiteral, $toLiteral);
-        $this->watchChains[$fromLiteral->toInt()]->remove();
-        $this->watchChains[$toLiteral->toInt()]->unshift($node);
+        $node->moveWatch($fromLiteralInt, $toLiteral);
+        $this->watchChains[$fromPackageName][$fromLiteralInt]->remove();
+        $this->watchChains[$toLiteral->getPackageName()][$toLiteral->toInt()]->unshift($node);
     }
 }

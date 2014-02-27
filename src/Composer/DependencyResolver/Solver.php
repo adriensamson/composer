@@ -360,10 +360,10 @@ class Solver
                     continue;
                 }
 
-                if (isset($seen[$literal->getPackageId()])) {
+                if (isset($seen[$literal->getPackageName()])) {
                     continue;
                 }
-                $seen[$literal->getPackageId()] = true;
+                $seen[$literal->getPackageName()] = true;
 
                 $l = $this->decisions->decisionLevel($literal);
 
@@ -402,12 +402,12 @@ class Solver
                     $decision = $this->decisions->atOffset($decisionId);
                     $literal = $decision[Decisions::DECISION_LITERAL];
 
-                    if (isset($seen[$literal->getPackageId()])) {
+                    if (isset($seen[$literal->getPackageName()])) {
                         break;
                     }
                 }
 
-                unset($seen[$literal->getPackageId()]);
+                unset($seen[$literal->getPackageName()]);
 
                 if ($num && 0 === --$num) {
                     $learnedLiterals[0] = $literal->getOppositeLiteral();
@@ -418,7 +418,7 @@ class Solver
 
                     foreach ($learnedLiterals as $i => $learnedLiteral) {
                         if ($i !== 0) {
-                            unset($seen[$learnedLiteral->getPackageId()]);
+                            unset($seen[$learnedLiteral->getPackageName()]);
                         }
                     }
                     // only level 1 marks left
