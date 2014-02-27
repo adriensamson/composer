@@ -752,7 +752,6 @@ class SolverTest extends TestCase
             $msg .= "    - C 1.0 requires d >= 1.0 -> satisfiable by D[1.0].\n";
             $msg .= "    - D 1.0 requires b < 1.0 -> satisfiable by B[0.9].\n";
             $msg .= "    - B 1.0 requires c >= 1.0 -> satisfiable by C[1.0].\n";
-            $msg .= "    - Can only install one of: B[0.9, 1.0].\n";
             $msg .= "    - A 1.0 requires b >= 1.0 -> satisfiable by B[1.0].\n";
             $msg .= "    - Installation request for a -> satisfiable by A[1.0].\n";
             $this->assertEquals($msg, $e->getMessage());
