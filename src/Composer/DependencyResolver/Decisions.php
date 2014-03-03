@@ -156,8 +156,14 @@ class Decisions implements \Iterator, \Countable
     {
         $level = $this->decisionMap[$literal->getPackageName()]->getLevel();
         if (isset($this->previousDecisions[$literal->getPackageName()][$level])) {
-            $this->decisionMap[$literal->getPackageName()] = $this->previousDecisions[$literal->getPackageName()][$level];
-            unset($this->previousDecisions[$literal->getPackageName()][$level]);
+            $previousDecisions = $this->previousDecisions[$literal->getPackageName()][$level];
+            $revertTo = end($previousDecisions);
+            if ($revertTo) {
+                $this->decisionMap[$literal->getPackageName()] = $revertTo;
+                unset($this->previousDecisions[$literal->getPackageName()][$level][key($previousDecisions)]);
+            } else {
+                unset($this->decisionMap[$literal->getPackageName()]);
+            }
         } else {
             unset($this->decisionMap[$literal->getPackageName()]);
         }
@@ -217,7 +223,7 @@ class Decisions implements \Iterator, \Countable
             }
         }
 
-        $this->previousDecisions[$packageName][$level] = $previousDecision;
+        $this->previousDecisions[$packageName][$level][] = $previousDecision;
         if ($literal->isPositive()) {
             $this->decisionMap[$packageName] = new Decision($level, $literal->getPackageId());
         } else {
